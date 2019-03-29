@@ -1,3 +1,4 @@
+import datetime
 import logging
 import re
 import subprocess
@@ -14,6 +15,7 @@ LOG_REGEX = [
     r'^(?P<event>Exit): (?P<msg>.*)$',
     r'^(?P<event>tell): (?P<actor_name>\w+) to (?P<target_name>\w+): (?P<msg>.*)$',
     r'^(?P<event>sayteam): (?P<actor_name>\w+): (?P<msg>.*)$',
+    r'^(?P<event>say): (?P<actor_name>\w+): (?P<msg>.*)$',
     r'^(?P<event>voice): (?P<actor_name>\w+) (?P<voice>.*)$',
     #sayteam: Gorre: I am on your team Stiffy!!
 ]
@@ -37,7 +39,7 @@ def run_command(command: list):
 
 
 def log_line2blob(line: str):
-    blob = {}
+    blob = {'timestamp': datetime.datetime.now().isoformat()}
     for r in LOG_REGEX:
         match = re.match(r, line)
         if match:
