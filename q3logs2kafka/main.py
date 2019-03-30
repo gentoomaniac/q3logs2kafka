@@ -6,6 +6,8 @@ import json
 import sys
 
 import click
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
 
 from core import log_line2blob, run_command
 
@@ -32,11 +34,23 @@ def cli(verbosity: int):
 
 @cli.command(name='tail')
 @click.option('-c', '--command', help='command to gather logs', type=str, required=True)
-def foobar(command: str):
+@click.option('-b', '--bootstrap-server', help='kafka bootstrap server:port', type=str, required=True, multiple=True)
+@click.option('-t', '--topic', help='kafka topic', type=str, required=True)
+def foobar(command: str, bootstrap_server: list, topic: str):
+    producer = KafkaProducer(
+        value_serializer=lambda m: json.dumps(m).encode('ascii'), bootstrap_servers=bootstrap_server)
+
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:
             log.info(json.dumps(blob))
+            future = producer.send(topic, blob)
+            # Block for 'synchronous' sends
+            try:
+                record_metadata = future.get(timeout=10)
+            except KafkaError:
+                log.exception()
+            pass
 
 
 if __name__ == '__main__':

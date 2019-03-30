@@ -44,5 +44,6 @@ def log_line2blob(line: str):
         match = re.match(r, line)
         if match:
             blob.update(match.groupdict())
+            return blob
 
-    return blob if blob else None
+    return None
