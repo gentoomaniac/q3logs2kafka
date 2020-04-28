@@ -9,7 +9,7 @@ import click
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
-from core import log_line2blob, run_command
+from .core import log_line2blob, run_command
 
 log = logging.getLogger(__file__)
 
@@ -47,7 +47,7 @@ def foobar(command: str, bootstrap_server: list, topic: str):
             future = producer.send(topic, blob)
             # Block for 'synchronous' sends
             try:
-                record_metadata = future.get(timeout=10)
+                future.get(timeout=10)
             except KafkaError:
                 log.exception()
             pass
