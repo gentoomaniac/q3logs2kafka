@@ -7,7 +7,7 @@ authors = [
 ]
 dependencies = [
     "click",
-    "kafka-python"
+    "kafka-python",
     "Flask"
 ]
 
