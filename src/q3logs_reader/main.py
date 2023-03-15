@@ -3,6 +3,7 @@
 
 import logging
 import json
+import uuid
 import sys
 
 import click
@@ -31,11 +32,15 @@ def cli(verbosity: int):
 
 @cli.command(name='tail')
 @click.option('-c', '--command', help='command to gather logs', type=str, required=True)
-def foobar(command: str):
+def tail(command: str):
 
+    match_id = None
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:
+            if blob['event'] == "loaded map":
+                match_id = str(uuid.uuid4())
+            blob['id'] = match_id
             log.info(json.dumps(blob))
 
 
