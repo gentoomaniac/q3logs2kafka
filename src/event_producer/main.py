@@ -6,10 +6,12 @@ import json
 import sys
 
 import click
+from flask import Flask, request, jsonify
 from kafka import KafkaProducer
 from kafka.errors import KafkaError
 
 log = logging.getLogger(__file__)
+app = Flask("event_producer")
 
 
 def _configure_logging(verbosity):
@@ -26,8 +28,14 @@ def _configure_logging(verbosity):
 def cli(verbosity: int):
     _configure_logging(verbosity)
 
-    log.info('I am an informational log entry in the sample script.')
-    return 0
+    return app.run()
+
+
+@app.route("/event/<uuid:match_id>", methods=['PUT'])
+def event(match_id):
+    response = request.json
+    response["match_id"] = match_id
+    return jsonify(response)
 
 
 if __name__ == '__main__':
