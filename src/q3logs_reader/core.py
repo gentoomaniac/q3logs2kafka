@@ -7,6 +7,7 @@ import time
 log = logging.getLogger(__file__)
 
 LOG_REGEX = [
+    r'^(?P<event>loaded map)s/(?P<map>\w+).aas$',
     r'^(?P<event>ClientConnect): (?P<client_id>\d+)$',
     r'^(?P<event>ClientDisconnect): (?P<client_id>\d+)$',
     # ClientUserinfoChanged: 4 n\Visor\t\0\model\visor\hmodel\visor\c1\4\c2\5\hc\70\w\0\l\0\skill\    2.00\tt\0\tl\0
