@@ -50,5 +50,5 @@ def log_line2blob(line: str):
             blob.update(match.groupdict())
             return blob
 
-    log.error('No match found for: {}'.format(line))
+    log.debug('No match found for: %s', line)
     return None
