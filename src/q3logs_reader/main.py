@@ -33,8 +33,7 @@ def cli(verbosity: int):
 @cli.command(name='tail')
 @click.option('-c', '--command', help='command to gather logs', type=str, required=True)
 def tail(command: str):
-
-    match_id = None
+    match_id = uuid.uuid4()
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:

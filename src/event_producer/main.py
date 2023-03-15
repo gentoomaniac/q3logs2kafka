@@ -3,15 +3,20 @@
 
 import logging
 import json
+import queue
+import signal
 import sys
+import time
+from threading import Thread
 
 import click
-from flask import Flask, request, jsonify
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
+from flask import Flask, request, Response
+# from kafka import KafkaProducer
+# from kafka.errors import KafkaError
 
 log = logging.getLogger(__file__)
 app = Flask("event_producer")
+event_queue = queue.Queue()
 
 
 def _configure_logging(verbosity):
@@ -23,19 +28,50 @@ def _configure_logging(verbosity):
             logging.getLogger(loggername).setLevel(logging.CRITICAL)
 
 
+class QueueHandler:
+    RUN = True
+
+    def shutdown(self, *args):
+        log.debug("received signal")
+        self.RUN = False
+
+        #ToDo: this needs to get fixed to handle shutdown events and flush the queue befor shutting down
+
+    def write_events_to_kafka(self):
+        while True:
+            item = None
+            try:
+                item = event_queue.get(timeout=1)
+            except queue.Empty:
+                if not self.RUN:
+                    break
+                time.sleep(0.01)
+            if item:
+                print(json.dumps(item))
+
+
 @click.command()
 @click.option('-v', '--verbosity', help='Verbosity', default=0, count=True)
 def cli(verbosity: int):
     _configure_logging(verbosity)
 
-    return app.run()
+    q_handler = QueueHandler()
+    thread = Thread(target=q_handler.write_events_to_kafka, daemon=True)
+    thread.start()
+    app.run()
 
 
 @app.route("/event/<uuid:match_id>", methods=['PUT'])
-def event(match_id):
-    response = request.json
-    response["match_id"] = match_id
-    return jsonify(response)
+def handle_event(match_id):
+    event = request.json
+    event['match_id'] = str(match_id)
+    try:
+        event_queue.put(request.json)
+    except queue.Full:
+        log.error("Event queue is full, dropping event.")
+        return Response("{}", status=503, mimetype='application/json')
+
+    return Response("{}", status=201, mimetype='application/json')
 
 
 if __name__ == '__main__':
