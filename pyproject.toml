@@ -11,4 +11,5 @@ dependencies = [
 ]
 
 [project.scripts]
-q3logs2kafka = "q3logs2kafka.main:cli"
+q3logs_reader = "q3logs_reader.main:cli"
+event_producer = "event_producer.main:cli"
