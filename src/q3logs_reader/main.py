@@ -5,8 +5,10 @@ import logging
 import json
 import uuid
 import sys
+import urllib.parse
 
 import click
+import requests
 
 from q3logs_reader.core import log_line2blob, run_command
 
@@ -32,15 +34,24 @@ def cli(verbosity: int):
 
 @cli.command(name='tail')
 @click.option('-c', '--command', help='command to gather logs', type=str, required=True)
-def tail(command: str):
+@click.option('-u', '--url', help="URL that events will be sent to", type=str, required=True)
+def tail(command: str, url: str):
+    headers = {'content-type': 'application/json'}
+    timeout = 10
+
     match_id = uuid.uuid4()
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:
             if blob['event'] == "loaded map":
                 match_id = str(uuid.uuid4())
-            blob['id'] = match_id
-            log.info(json.dumps(blob))
+            response = requests.put(urllib.parse.urljoin(url, match_id),
+                                    data=json.dumps(blob),
+                                    timeout=timeout,
+                                    headers=headers)
+            #ToDo: check status code
+            if response.status_code != 201:
+                log.error("failed sending event: %s", response.text)
 
 
 if __name__ == '__main__':

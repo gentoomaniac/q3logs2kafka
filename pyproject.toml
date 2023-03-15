@@ -8,7 +8,8 @@ authors = [
 dependencies = [
     "click",
     "kafka-python",
-    "Flask"
+    "Flask",
+    "requests'
 ]
 
 [project.scripts]
