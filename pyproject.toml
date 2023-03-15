@@ -1,0 +1,14 @@
+[project]
+name = "q3logs2kafka"
+description = "Send q3 logs as events to kafka"
+version = "0.0.1"
+authors = [
+    { name = "Marco Siebecke", email = "marco@siebecke.se" }
+]
+dependencies = [
+    "click",
+    "kafka-python"
+]
+
+[project.scripts]
+q3logs2kafka = "q3logs2kafka.main:cli"
