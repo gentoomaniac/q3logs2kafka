@@ -6,10 +6,8 @@ import json
 import sys
 
 import click
-from kafka import KafkaProducer
-from kafka.errors import KafkaError
 
-from q3logs2kafka.core import log_line2blob, run_command
+from q3logs_reader.core import log_line2blob, run_command
 
 log = logging.getLogger(__file__)
 
@@ -28,28 +26,17 @@ def _configure_logging(verbosity):
 def cli(verbosity: int):
     _configure_logging(verbosity)
 
-    log.info('I am an informational log entry in the sample script.')
     return 0
 
 
 @cli.command(name='tail')
 @click.option('-c', '--command', help='command to gather logs', type=str, required=True)
-@click.option('-b', '--bootstrap-server', help='kafka bootstrap server:port', type=str, required=True, multiple=True)
-@click.option('-t', '--topic', help='kafka topic', type=str, required=True)
-def foobar(command: str, bootstrap_server: list, topic: str):
-    producer = KafkaProducer(value_serializer=lambda m: json.dumps(m).encode('ascii'),
-                             bootstrap_servers=bootstrap_server)
+def foobar(command: str):
 
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:
             log.info(json.dumps(blob))
-            future = producer.send(topic, blob)
-            # Block for 'synchronous' sends
-            try:
-                future.get(timeout=10)
-            except KafkaError:
-                log.exception()
 
 
 if __name__ == '__main__':
