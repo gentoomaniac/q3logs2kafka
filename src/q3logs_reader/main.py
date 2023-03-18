@@ -44,7 +44,14 @@ def tail(command: str, url: str):
         blob = log_line2blob(line)
         if blob:
             if blob['event'] == "loaded map":
+                response = requests.put(urllib.parse.urljoin(url, match_id),
+                                        data=json.dumps({'event': 'GameEnded'}),
+                                        timeout=timeout,
+                                        headers=headers)
+                if response.status_code != 201:
+                    log.error("failed sending GameEnded: %s", response.text)
                 match_id = str(uuid.uuid4())
+
             response = requests.put(urllib.parse.urljoin(url, match_id),
                                     data=json.dumps(blob),
                                     timeout=timeout,
