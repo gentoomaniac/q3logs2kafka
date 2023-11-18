@@ -39,7 +39,7 @@ def tail(command: str, url: str):
     headers = {'content-type': 'application/json'}
     timeout = 10
 
-    match_id = uuid.uuid4()
+    match_id = str(uuid.uuid4())
     for line in run_command(command.split()):
         blob = log_line2blob(line)
         if blob:

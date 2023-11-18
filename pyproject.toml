@@ -9,7 +9,7 @@ dependencies = [
     "click",
     "kafka-python",
     "Flask",
-    "requests'
+    "requests"
 ]
 
 [project.scripts]

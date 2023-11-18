@@ -4,15 +4,15 @@
 import logging
 import json
 import queue
-import signal
 import sys
 import time
 from threading import Thread
 
 import click
 from flask import Flask, request, Response
-# from kafka import KafkaProducer
-# from kafka.errors import KafkaError
+
+from kafka import KafkaProducer
+from kafka.errors import KafkaError
 
 log = logging.getLogger(__file__)
 app = Flask("event_producer")
@@ -30,6 +30,12 @@ def _configure_logging(verbosity):
 
 class QueueHandler:
     RUN = True
+
+    def __init__(self, bootstrap_servers: list):
+
+        self.producer = KafkaProducer(key_serializer=lambda m: json.dumps(m).encode('utf-8'),
+                                      value_serializer=lambda m: json.dumps(m).encode('utf-8'),
+                                      bootstrap_servers=bootstrap_servers)
 
     def shutdown(self, *args):
         log.debug("received signal")
@@ -49,13 +55,44 @@ class QueueHandler:
             if item:
                 print(json.dumps(item))
 
+                # if we have a new match, write that id to the matches topic to be able to keep track of the latest match
+                if item['event'] == "loaded map":
+                    future = self.producer.send(topic='matches',
+                                                key='matches',
+                                                value={
+                                                    'state': 'started',
+                                                    'id': item['match_id']
+                                                })
+                    try:
+                        future.get(timeout=10)
+                    except KafkaError:
+                        log.exception()
+                if item['event'] == "GameEnded":
+                    future = self.producer.send(topic='matches',
+                                                key='matches',
+                                                value={
+                                                    'state': 'ended',
+                                                    'id': item['match_id']
+                                                })
+                    try:
+                        future.get(timeout=10)
+                    except KafkaError:
+                        log.exception()
+
+                future = self.producer.send(topic=item['match_id'], key=item['match_id'], value=item)
+                # Block for 'synchronous' sends
+                try:
+                    future.get(timeout=10)
+                except KafkaError:
+                    log.exception()
+
 
 @click.command()
 @click.option('-v', '--verbosity', help='Verbosity', default=0, count=True)
 def cli(verbosity: int):
     _configure_logging(verbosity)
 
-    q_handler = QueueHandler()
+    q_handler = QueueHandler(bootstrap_servers=['127.0.0.1:9092'])
     thread = Thread(target=q_handler.write_events_to_kafka, daemon=True)
     thread.start()
     app.run()
