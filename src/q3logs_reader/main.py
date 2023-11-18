@@ -45,7 +45,10 @@ def tail(command: str, url: str):
         if blob:
             if blob['event'] == "loaded map":
                 response = requests.put(urllib.parse.urljoin(url, match_id),
-                                        data=json.dumps({'event': 'GameEnded'}),
+                                        data=json.dumps({
+                                            'timestamp': blob['timestamp'],
+                                            'event': 'GameEnded'
+                                        }),
                                         timeout=timeout,
                                         headers=headers)
                 if response.status_code != 201:

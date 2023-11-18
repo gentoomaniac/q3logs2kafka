@@ -24,6 +24,11 @@ python -m unittest discover
 
 [Set up a kafka stack](https://www.conduktor.io/kafka/how-to-start-kafka-using-docker/)
 
+```bash
+kafka-console-consumer --bootstrap-server localhost:9092 --topic matches --from-beginning
+
+```
+
 start event_producer:
 
 ```bash

@@ -61,7 +61,9 @@ class QueueHandler:
                                                 key='matches',
                                                 value={
                                                     'state': 'started',
-                                                    'id': item['match_id']
+                                                    'id': item['match_id'],
+                                                    'map': item['map'],
+                                                    'timestamp': item['timestamp']
                                                 })
                     try:
                         future.get(timeout=10)
@@ -72,7 +74,8 @@ class QueueHandler:
                                                 key='matches',
                                                 value={
                                                     'state': 'ended',
-                                                    'id': item['match_id']
+                                                    'id': item['match_id'],
+                                                    'timestamp': item['timestamp']
                                                 })
                     try:
                         future.get(timeout=10)
